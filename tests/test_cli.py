@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from argparse import Namespace
 from pathlib import Path
 
@@ -13,7 +14,7 @@ from mteb.cli import create_meta, run
 
 
 def test_available_tasks():
-    command = "mteb available_tasks"
+    command = f"{sys.executable} -m mteb available_tasks"
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     assert result.returncode == 0, "Command failed"
     assert (
@@ -111,7 +112,7 @@ def test_create_meta():
         ), f"Value for {key} does not match"
 
     # ensure that the command line interface works as well
-    command = f"mteb create_meta --results_folder {results} --output_path {output_path} --overwrite"
+    command = f"{sys.executable} -m mteb create_meta --results_folder {results} --output_path {output_path} --overwrite"
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     assert result.returncode == 0, "Command failed"
 
@@ -144,21 +145,24 @@ def test_create_meta_from_existing(existing_readme_name: str, gold_readme_name: 
 
     assert output_path.exists(), "Output file not created"
 
+    yaml_start_sep = "---"
+    yaml_end_sep = "\n---\n"  # newline to avoid matching "---" in the content
+
     with output_path.open("r") as f:
         meta = f.read()
-        start_yaml = meta.index("---") + 3
-        end_yaml = meta.index("---", start_yaml)
+        start_yaml = meta.index(yaml_start_sep) + len(yaml_start_sep)
+        end_yaml = meta.index(yaml_end_sep, start_yaml)
+        readme_output = meta[end_yaml + len(yaml_end_sep) :]
         meta = meta[start_yaml:end_yaml]
         frontmatter = yaml.safe_load(meta)
-        readme_output = meta[end_yaml + 3 :]
 
     with (output_folder / gold_readme_name).open("r") as f:
         gold = f.read()
-        start_yaml = gold.index("---") + 3
-        end_yaml = gold.index("---", start_yaml)
+        start_yaml = gold.index(yaml_start_sep) + len(yaml_start_sep)
+        end_yaml = gold.index(yaml_end_sep, start_yaml)
+        gold_readme = gold[end_yaml + len(yaml_end_sep) :]
         gold = gold[start_yaml:end_yaml]
         frontmatter_gold = yaml.safe_load(gold)
-        gold_readme = gold[end_yaml + 3 :]
 
     # compare the frontmatter (ignoring the order of keys and other elements)
     for key in frontmatter_gold:
@@ -169,6 +173,15 @@ def test_create_meta_from_existing(existing_readme_name: str, gold_readme_name: 
         ), f"Value for {key} does not match"
     assert readme_output == gold_readme
     # ensure that the command line interface works as well
-    command = f"mteb create_meta --results_folder {results} --output_path {output_path} --from_existing {existing_readme} --overwrite"
+    command = f"{sys.executable} -m mteb create_meta --results_folder {results} --output_path {output_path} --from_existing {existing_readme} --overwrite"
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     assert result.returncode == 0, "Command failed"
+
+
+def test_save_predictions():
+    command = f"{sys.executable} -m mteb run -m all-MiniLM-L6-v2 -t NFCorpus --output_folder tests/results --save_predictions"
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    assert result.returncode == 0, "Command failed"
+    test_folder = Path(__file__).parent
+    results_path = test_folder / "results" / "NFCorpus_default_predictions.json"
+    assert results_path.exists(), "Predictions file not created"
