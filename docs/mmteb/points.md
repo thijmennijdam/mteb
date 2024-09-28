@@ -39,7 +39,7 @@ Please also add your first name and last name are as you want them to appear in 
 | ----------------- | ---------- | ---------- | ---------------------------- | -------------------- | ----------------------------------------------------- |
 | KennethEnevoldsen | Kenneth    | Enevoldsen | kennethcenevoldsen@gmail.com | ~Kenneth_Enevoldsen1 | Aarhus University, Denmark                            |
 | x-tabdeveloping   | Márton     | Kardos     | martonkardos@cas.au.dk       | ~Márton_Kardos1      | Aarhus University, Denmark                            |
-| imenelydiaker     | Imene      | Kerboua    |                              |                      | Esker, Lyon, France && INSA Lyon, LIRIS, Lyon, France |
+| imenelydiaker     | Imene      | Kerboua    |                              |                      | INSA Lyon, LIRIS, France |
 | wissam-sib        | Wissam     | Siblini    |  wissam.siblini92@gmail.com    |   ~Wissam_Siblini1                   | N/A                                                   |
 | GabrielSequeira   | Gabriel    | Sequeira   |                              |                      | N/A                                                   |
 | schmarion         | Marion     | Schaeffer  |                              |  ~Marion_Schaeffer1  |  Wikit, Lyon, France                                  |
@@ -63,10 +63,10 @@ Please also add your first name and last name are as you want them to appear in 
 | rbroc             | Roberta    | Rocca      | roberta.rocca@cas.au.dk      | ~Roberta_Rocca1      | Aarhus University, Denmark                            |
 | awinml            | Ashwin     | Mathur     | ashwinxmathur@gmail.com      |                      | N/A                                                   |
 | guangyusong       | Guangyu    | Song       | guangysong@gmail.com         | ~Guangyu_Song1       | Tano Labs                            |
-| davidstap        | David      | Stap       | dd.stap@gmail.com            | ~David_Stap          | University of Amsterdam.                         |
+| davidstap         | David      | Stap       | dd.stap@gmail.com            | ~David_Stap          | University of Amsterdam.                         |
 | HLasse            | Lasse      | Hansen     | lasseh0310@gmail.com         | ~Lasse_Hansen2       | Aarhus University, Denmark                            |
 | jaygala24         | Jay        | Gala       | jaygala24@gmail.com          | ~Jay_Gala1           | MBZUAI                          |
-| digantamisra98      | Diganta    | Misra      | diganta.misra@mila.quebec    | ~Diganta_Misra1       | Mila - Quebec AI Institute                           |
+| digantamisra98    | Diganta    | Misra      | diganta.misra@tue.ellis.eu   | ~Diganta_Misra1       | ELLIS Institute Tübingen, Max Planck Institut für Intelligente Systeme                           |
 | PranjalChitale    | Pranjal    | Chitale    | cs21s022@smail.iitm.ac.in    | ~Pranjal_A_Chitale1       | Indian Institute of Technology Madras            |
 | Akash190104       | Akash      | Kundu      | akashkundu2xx4@gmail.com      |~Akash_Kundu2             | Heritage Institute of Technology, Kolkata && Apart Research |
 | dwzhu-pku         | Dawei      | Zhu        | dwzhu@pku.edu.cn             | ~Dawei_Zhu2       | Peking University            |
@@ -110,10 +110,14 @@ Please also add your first name and last name are as you want them to appear in 
 | guenthermi        | Michael    | Günther    | michael.guenther@jina.ai     | ~Michael_Günther1    | Jina AI                                               |
 | violenil          | Isabelle   | Mohr       | isabelle.mohr@jina.ai        | ~Isabelle_Mohr1      | Jina AI                                               |
 | akshita-sukhlecha | Akshita    | Sukhlecha  | sukhlecha.akshita@gmail.com  |                      | N/A                                                   |
-| Muennighoff          | Niklas   | Muennighoff       | n.muennighoff@gmail.com        |       | Contextual AI                                               |
+| Muennighoff        Niklas   | Muennighoff       | n.muennighoff@gmail.com        |    ~Niklas_Muennighoff1    | Stanford University && Contextual AI                       |
 | AlexeyVatolin          | Aleksei   | Vatolin       | vatolinalex@gmail.com        | ~Aleksei_Vatolin1      | FRC CSC RAS                                               |
 | xhluca | Xing Han | Lù | xing.han.lu@mail.mcgill.ca | ~Xing_Han_Lù1 | McGill University && Mila - Quebec AI Institute |
 | crystina-z | Xinyu | Zhang | xinyucrystina.zhang@uwaterloo.ca | ~Crystina_Zhang1 | University of Waterloo |
 | tomaarsen          | Tom   | Aarsen       |                           | ~Tom_Aarsen1      | Hugging Face |
 | crystina-z | Xinyu | Zhang | xinyucrystina.zhang@uwaterloo.ca | ~Crystina_Zhang1 | University of Waterloo |
-| mrshu | Marek | Suppa | marek.suppa@fmph.uniba.sk | ~Marek_Suppa1 | Comenius University in Bratislava && Cisco Systems |
+| mrshu | Marek | Šuppa | marek.suppa@fmph.uniba.sk | ~Marek_Suppa1 | Comenius University in Bratislava && Cisco Systems |
+| swj0419 | Weijia | Shi | swj0419@uw.edu | ~Weijia_Shi1 | University of Washington |
+| xiamengzhou | Mengzhou | Xia | mengzhou@princeton.edu | ~Mengzhou_Xia1 | Princeton University |
+| john-b-yang | John | Yang | johnby@stanford.edu | ~John_Yang3 | Stanford University |
+| sarahooker | Sara | Hooker | | ~Sara_Hooker2 | Cohere For AI |
