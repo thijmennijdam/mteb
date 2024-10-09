@@ -88,6 +88,10 @@ class BGEM3Wrapper:
             kwargs.pop("prompt_name")
         if "request_qid" in kwargs:
             kwargs.pop("request_qid")
+        if "show_progress_bar" in kwargs:
+            kwargs.pop("show_progress_bar")
+        if "convert_to_tensor" in kwargs:
+            kwargs.pop("convert_to_tensor")
 
         return self.model.encode(
             sentences,
@@ -117,7 +121,7 @@ bge_large_en_v1_5 = ModelMeta(
 
 bge_m3 = ModelMeta(
     loader=partial(BGEM3Wrapper, model_name="BAAI/bge-m3", func="dense_vecs"),  # type: ignore
-    name="BAAI/bge-m3-dense",
+    name="BAAI/bge-m3",
     languages=["eng_Latn"],
     open_source=True,
     revision="5617a9f61b028005a4858fdac845db406aefb181",

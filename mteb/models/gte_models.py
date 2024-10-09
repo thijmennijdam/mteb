@@ -42,6 +42,27 @@ def gte_loader(**kwargs):
     return GTEWrapper(**kwargs)
 
 
+class GTESTWrapper:
+    def __init__(self, model_name: str, **kwargs: Any):
+        from sentence_transformers import SentenceTransformer
+        self.model_name = model_name
+        self.model = SentenceTransformer(model_name, trust_remote_code=True)
+
+    def encode(  # type: ignore
+        self,
+        sentences: list[str],
+        *,
+        batch_size: int = 32,
+        **kwargs: Any,
+    ):
+        if "prompt_name" in kwargs:
+            kwargs.pop("prompt_name")
+        if "request_qid" in kwargs:
+            kwargs.pop("request_qid")
+
+        return self.model.encode(sentences, batch_size=batch_size, normalize_embeddings=True, **kwargs)
+
+
 gte_Qwen2_7B_instruct = ModelMeta(
     loader=partial(
         gte_loader,
@@ -59,6 +80,15 @@ gte_Qwen2_7B_instruct = ModelMeta(
     open_source=True,
     revision="e26182b2122f4435e8b3ebecbf363990f409b45b",
     release_date="2024-06-15",  # initial commit of hf model.
+)
+
+gte_multilingual_base = ModelMeta(
+    loader=partial(GTESTWrapper, model_name="Alibaba-NLP/gte-multilingual-base"),
+    name="Alibaba-NLP/gte-multilingual-base",
+    languages=None,
+    open_source=True,
+    revision="7fc06782350c1a83f88b15dd4b38ef853d3b8503",
+    release_date="2024-07-29",
 )
 
 
