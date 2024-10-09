@@ -65,6 +65,37 @@ class BGEWrapper:
         return emb
 
 
+class BGEM3Wrapper:
+    """following the hf model card documentation."""
+
+    def __init__(self, model_name: str, func: str = "dense_vecs", **kwargs: Any):
+        self.model_name = model_name
+
+        from FlagEmbedding import BGEM3FlagModel
+
+        # Setting use_fp16 to True speeds up computation with a slight performance degradation
+        self.model = BGEM3FlagModel('BAAI/bge-m3', use_fp16=True)
+        self.func = func
+
+    def encode(  # type: ignore
+        self,
+        sentences: list[str],
+        *,
+        batch_size: int = 32,
+        **kwargs: Any,
+    ):
+        if "prompt_name" in kwargs:
+            kwargs.pop("prompt_name")
+        if "request_qid" in kwargs:
+            kwargs.pop("request_qid")
+
+        return self.model.encode(
+            sentences,
+            batch_size=batch_size,
+            **kwargs
+        )[self.func]
+
+
 bge_base_en_v1_5 = ModelMeta(
     loader=partial(BGEWrapper, model_name="BAAI/bge-base-en-v1.5"),  # type: ignore
     name="BAAI/bge-base-en-v1.5",
@@ -81,4 +112,14 @@ bge_large_en_v1_5 = ModelMeta(
     open_source=True,
     revision="d4aa6901d3a41ba39fb536a557fa166f842b0e09",
     release_date="2023-09-12",  # initial commit of hf model.
+)
+
+
+bge_m3 = ModelMeta(
+    loader=partial(BGEM3Wrapper, model_name="BAAI/bge-m3", func="dense_vecs"),  # type: ignore
+    name="BAAI/bge-m3-dense",
+    languages=["eng_Latn"],
+    open_source=True,
+    revision="5617a9f61b028005a4858fdac845db406aefb181",
+    release_date="2024-02-05",  # initial commit of hf model.
 )
