@@ -15,6 +15,30 @@ _LANGUAGES = {
     "zho": ["zho-Hans"],
 }
 
+_LANGUAGES_CLIR = {
+    "eng.fas": ["eng-Latn", "fas-Arab"],
+    "eng.rus": ["eng-Latn", "rus-Cyrl"],
+    "eng.zho": ["eng-Latn", "zho-Hans"],
+}
+
+
+def _build_lang_pair(langs: list[str]) -> str:
+    """Builds a language pair separated by a dash.
+    e.g., ['eng-Latn', 'deu-Latn'] -> 'eng-deu'.
+    """
+    return langs[0].split("-")[0] + "-" + langs[1].split("-")[0]
+
+
+def extend_lang_pairs() -> dict[str, list[str]]:
+    eval_langs = {}
+    for langs in _LANGUAGES_CLIR.values():
+        lang_pair = _build_lang_pair(langs)
+        eval_langs[lang_pair] = langs
+    return eval_langs
+
+
+_CLIR_LANGS = extend_lang_pairs()
+
 EVAL_SPLIT = "test"
 
 
@@ -32,10 +56,15 @@ def load_data(
     top_ranked = {lang: {EVAL_SPLIT: {}} for lang in langs}
 
     for lang in langs:
+        if "-" in lang:
+            loading_lang = lang.split("-")[1]  # don't care about the eng part
+        else:
+            loading_lang = lang
+
         # Load corpus data
         corpus_data = datasets.load_dataset(
             path,
-            f"corpus-{lang}",
+            f"corpus-{loading_lang}",
             cache_dir=cache_dir,
             revision=revision,
             trust_remote_code=True,
@@ -48,7 +77,7 @@ def load_data(
         # Load queries data
         queries_data = datasets.load_dataset(
             path,
-            f"queries-{lang}",
+            f"queries-{loading_lang}",
             cache_dir=cache_dir,
             revision=revision,
             trust_remote_code=True,
@@ -67,7 +96,7 @@ def load_data(
         # Load qrels_og data
         qrels_og_data = datasets.load_dataset(
             path,
-            f"qrels_og-{lang}",
+            f"qrels_og-{loading_lang}",
             cache_dir=cache_dir,
             revision=revision,
             trust_remote_code=True,
@@ -85,7 +114,7 @@ def load_data(
         # Load qrels_changed data
         qrels_changed_data = datasets.load_dataset(
             path,
-            f"qrels_changed-{lang}",
+            f"qrels_changed-{loading_lang}",
             cache_dir=cache_dir,
             revision=revision,
             trust_remote_code=True,
@@ -103,7 +132,7 @@ def load_data(
         # Load top_ranked data
         top_ranked_data = datasets.load_dataset(
             path,
-            f"top_ranked-{lang}",
+            f"top_ranked-{loading_lang}",
             cache_dir=cache_dir,
             revision=revision,
             trust_remote_code=True,
@@ -146,19 +175,19 @@ def load_data(
 class mFollowIRCrossLingual(MultilingualTask, AbsTaskInstructionRetrieval):
     metadata = TaskMetadata(
         name="mFollowIRCrossLingualInstructionRetrieval",
-        description="This tasks measures retrieval instruction following ability on NeuCLIR narratives for the mFollowIR benchmark on the Farsi, Russian, and Chinese languages.",
+        description="This tasks measures retrieval instruction following ability on NeuCLIR narratives for the mFollowIR benchmark on the Farsi, Russian, and Chinese languages with English queries/instructions.",
         reference="https://neuclir.github.io/",
         dataset={
             "path": "jhu-clsp/mFollowIR-cross-lingual",
-            "revision": "main",
+            "revision": "f85872d09da933018d64e4a7260584e536b7cf14",
             "trust_remote_code": True,
         },
         type="Retrieval",
         category="s2p",
         modalities=["text"],
         eval_splits=[EVAL_SPLIT],
-        eval_langs=_LANGUAGES,
-        main_score="ndcg_at_20",
+        eval_langs=_CLIR_LANGS,
+        main_score="p-MRR",
         date=("2021-08-01", "2022-06-30"),
         domains=["News", "Written"],
         task_subtypes=[],
@@ -173,28 +202,28 @@ class mFollowIRCrossLingual(MultilingualTask, AbsTaskInstructionRetrieval):
   year={2024}
 }""",
         descriptive_stats={
-            "n_samples": {"fas": 43 * 2, "rus": 40 * 2, "zho": 43 * 2},
+            "n_samples": {"eng-fas": 40 * 2, "eng-rus": 40 * 2, "eng-zho": 43 * 2},
             "test": {
                 "num_docs": 121635,
-                "num_queries": 126,
+                "num_queries": 123,
                 "average_document_length": 2331.0777818884367,
-                "average_query_length": 81.87301587301587,
-                "average_instruction_length": 389.14285714285717,
-                "average_changed_instruction_length": 448.5238095238095,
+                "average_query_length": 81.8780487804878,
+                "average_instruction_length": 389.9512195121951,
+                "average_changed_instruction_length": 450.5528455284553,
                 "average_relevant_docs_per_query": 10.30952380952381,
-                "average_top_ranked_per_query": 1000,
+                "average_top_ranked_per_query": 1024.3902439024391,
                 "hf_subset_descriptive_stats": {
-                    "fas": {
+                    "eng-fas": {
                         "num_docs": 41189,
-                        "num_queries": 43,
+                        "num_queries": 40,
                         "average_document_length": 3145.4990895627475,
-                        "average_query_length": 80.18604651162791,
-                        "average_instruction_length": 394.0232558139535,
-                        "average_changed_instruction_length": 456.3488372093023,
+                        "average_query_length": 80.075,
+                        "average_instruction_length": 396.875,
+                        "average_changed_instruction_length": 463.175,
                         "average_relevant_docs_per_query": 10.465116279069768,
-                        "average_top_ranked_per_query": 1000,
+                        "average_top_ranked_per_query": 1075,
                     },
-                    "rus": {
+                    "eng-rus": {
                         "num_docs": 39326,
                         "num_queries": 40,
                         "average_document_length": 2784.0813456746173,
@@ -204,13 +233,112 @@ class mFollowIRCrossLingual(MultilingualTask, AbsTaskInstructionRetrieval):
                         "average_relevant_docs_per_query": 9.775,
                         "average_top_ranked_per_query": 1000,
                     },
-                    "zho": {
+                    "eng-zho": {
                         "num_docs": 41120,
                         "num_queries": 43,
                         "average_document_length": 1082.0501215953307,
                         "average_query_length": 83.55813953488372,
                         "average_instruction_length": 401.0232558139535,
                         "average_changed_instruction_length": 456.25581395348837,
+                        "average_relevant_docs_per_query": 10.651162790697674,
+                        "average_top_ranked_per_query": 1000,
+                    },
+                },
+            },
+        },
+    )
+
+    def load_data(self, **kwargs):
+        if self.data_loaded:
+            return
+
+        (
+            self.corpus,
+            self.queries,
+            self.og_instructions,
+            self.changed_instructions,
+            self.og_relevant_docs,
+            self.changed_relevant_docs,
+            self.top_ranked,
+        ) = load_data(
+            path=self.metadata_dict["dataset"]["path"],
+            langs=self.metadata.eval_langs,
+            eval_splits=self.metadata_dict["eval_splits"],
+            cache_dir=kwargs.get("cache_dir", None),
+            revision=self.metadata_dict["dataset"]["revision"],
+        )
+
+        self.data_loaded = True
+
+
+class mFollowIR(MultilingualTask, AbsTaskInstructionRetrieval):
+    metadata = TaskMetadata(
+        name="mFollowIRInstructionRetrieval",
+        description="This tasks measures retrieval instruction following ability on NeuCLIR narratives for the mFollowIR benchmark on the Farsi, Russian, and Chinese languages.",
+        reference="https://neuclir.github.io/",
+        dataset={
+            "path": "jhu-clsp/mFollowIR",
+            "revision": "5dcdb224d094f26ea2e67947e289489f8b95320c",
+            "trust_remote_code": True,
+        },
+        type="Retrieval",
+        category="s2p",
+        modalities=["text"],
+        eval_splits=[EVAL_SPLIT],
+        eval_langs=_LANGUAGES,
+        main_score="p-MRR",
+        date=("2021-08-01", "2022-06-30"),
+        domains=["News", "Written"],
+        task_subtypes=[],
+        license="odc-by",
+        annotations_creators="expert-annotated",
+        dialect=[],
+        sample_creation="found",
+        bibtex_citation="""@article{weller2024mfollowir,
+  title={{mFollowIR: a Multilingual Benchmark for Instruction Following in Information Retrieval}},
+  author={Weller, Orion and Chang, Benjamin and Yang, Eugene and Yarmohammadi, Mahsa and Barham, Sam and MacAvaney, Sean and Cohan, Arman and Soldaini, Luca and Van Durme, Benjamin and Lawrie, Dawn},
+  journal={arXiv preprint TODO},
+  year={2024}
+}""",
+        descriptive_stats={
+            "n_samples": {"fas": 40 * 2, "rus": 40 * 2, "zho": 43 * 2},
+            "test": {
+                "num_docs": 121635,
+                "num_queries": 123,
+                "average_document_length": 2331.0777818884367,
+                "average_query_length": 57.113821138211385,
+                "average_instruction_length": 281.0650406504065,
+                "average_changed_instruction_length": 326.9430894308943,
+                "average_relevant_docs_per_query": 10.30952380952381,
+                "average_top_ranked_per_query": 1024.3902439024391,
+                "hf_subset_descriptive_stats": {
+                    "fas": {
+                        "num_docs": 41189,
+                        "num_queries": 40,
+                        "average_document_length": 3145.4990895627475,
+                        "average_query_length": 72.65,
+                        "average_instruction_length": 358.925,
+                        "average_changed_instruction_length": 415.325,
+                        "average_relevant_docs_per_query": 10.465116279069768,
+                        "average_top_ranked_per_query": 1075,
+                    },
+                    "rus": {
+                        "num_docs": 39326,
+                        "num_queries": 40,
+                        "average_document_length": 2784.0813456746173,
+                        "average_query_length": 77.5,
+                        "average_instruction_length": 387,
+                        "average_changed_instruction_length": 458,
+                        "average_relevant_docs_per_query": 9.775,
+                        "average_top_ranked_per_query": 1000,
+                    },
+                    "zho": {
+                        "num_docs": 41120,
+                        "num_queries": 43,
+                        "average_document_length": 1082.0501215953307,
+                        "average_query_length": 23.697674418604652,
+                        "average_instruction_length": 110.09302325581395,
+                        "average_changed_instruction_length": 122.81395348837209,
                         "average_relevant_docs_per_query": 10.651162790697674,
                         "average_top_ranked_per_query": 1000,
                     },

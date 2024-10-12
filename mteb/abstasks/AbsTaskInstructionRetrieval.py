@@ -530,6 +530,8 @@ class AbsTaskInstructionRetrieval(AbsTask):
         # do the results by query and relevant docs only
         all_results = []
         for query_id in tqdm.tqdm(list(queries.keys()), leave=False, desc="Retrieving"):
+            # print(f"Query: {queries[query_id]}")
+            # print(f"First doc: {corpus[list(corpus.keys())[0]]}")
             cur_queries = {query_id: queries[query_id]}
             cur_instructions = {queries[query_id]: instructions[queries[query_id]]}
             cur_docs = {

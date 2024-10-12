@@ -93,6 +93,7 @@ class DenseRetrievalExactSearch:
         return_sorted: bool = False,
         **kwargs,
     ) -> dict[str, dict[str, float]]:
+        printed_first = kwargs.get("printed_first", False)
         # Create embeddings for all queries using model.encode_queries()
         # Runs semantic search against the corpus embeddings
         # Returns a ranked list with the corpus ids
@@ -106,7 +107,16 @@ class DenseRetrievalExactSearch:
         self.results = {qid: {} for qid in query_ids}
         queries = [queries[qid] for qid in queries]  # type: ignore
         if instructions:
+            # if instruction_as_prompt_leading:
+            #   queries = [f"{instructions[query]}: {query}".strip() for query in queries]
+            #   # set prompt to None
+            #   # kwargs["prompt_name"] = None
+            # else
             queries = [f"{query} {instructions[query]}".strip() for query in queries]
+            if not printed_first:
+                print(f"First query is {queries[0]}")
+                printed_first = True
+
         if isinstance(queries[0], list):  # type: ignore
             query_embeddings = self.encode_conversations(
                 model=self.model,
@@ -354,6 +364,7 @@ class DRESModel:
         prompt_type: str = PromptType.query,
         **kwargs,
     ):
+        # TODO: add instruction here
         if self.use_sbert_model:
             if isinstance(self.model._first_module(), Transformer):
                 logger.info(
