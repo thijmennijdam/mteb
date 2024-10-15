@@ -91,6 +91,7 @@ class ModelMeta(BaseModel):
         else:
             loader = self.loader
 
+        
         model: Encoder | EncoderWithQueryCorpusEncode = loader(**kwargs)  # type: ignore
         return model
 

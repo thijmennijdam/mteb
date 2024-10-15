@@ -240,8 +240,11 @@ def evaluate_change(
 ) -> dict[str, float]:
     changes = []
     for qid in changed_qrels.keys():
-        original_qid_run = original_run[qid]
-        new_qid_run = new_run[qid]
+        try:
+            original_qid_run = original_run[qid]
+            new_qid_run = new_run[qid]
+        except KeyError:
+            breakpoint()
         for idx, changed_doc in enumerate(changed_qrels[qid]):
             original_rank, original_score = get_rank_from_dict(
                 original_qid_run, changed_doc
