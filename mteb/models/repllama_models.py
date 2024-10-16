@@ -114,7 +114,7 @@ class RepLLaMAWrapper:
         # NOTE: two spaces after the colon
         sentences = [f"passage:  {sentence}".strip() for sentence in sentences]
         print(f"Encoding corpus of length {len(sentences)}")
-        print(f"First sentence: {sentences[0]}")
+        # print(f"First sentence: {sentences[0]}")
         return self.encode(sentences, **kwargs)
 
     def encode_queries(self, queries: list[str], **kwargs: Any) -> np.ndarray:
