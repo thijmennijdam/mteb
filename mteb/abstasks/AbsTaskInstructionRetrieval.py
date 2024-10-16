@@ -372,6 +372,7 @@ class AbsTaskInstructionRetrieval(AbsTask):
         )
 
         top_ranked = top_ranked[split]
+        kwargs["prediction_name"] = "og"
         scores_og, results_og = self._evaluate_subset(
             retriever,
             corpus,
@@ -382,6 +383,7 @@ class AbsTaskInstructionRetrieval(AbsTask):
             lang,
             **kwargs,
         )
+        kwargs["prediction_name"] = "changed"
         scores_changed, results_changed = self._evaluate_subset(
             retriever,
             corpus,
@@ -573,6 +575,9 @@ class AbsTaskInstructionRetrieval(AbsTask):
                 )
             else:
                 qrels_save_path = f"{output_folder}/{self.metadata_dict['name']}_{lang}_predictions.json"
+
+            if kwargs.get("prediction_name", None):
+                qrels_save_path = qrels_save_path.replace(".json", f"_{kwargs['prediction_name']}.json")
 
             with open(qrels_save_path, "w") as f:
                 json.dump(results, f)

@@ -3,16 +3,22 @@ import json
 import csv
 import glob
 
+METRIC_NAME = "ndcg_at_20"
+
 def extract_values(file_path):
     with open(file_path, 'r') as f:
         data = json.load(f)
+
+
+    assert data["dataset_revision"] not in ["main", "latest"]
     
     results = {}
     for result in data['scores']['test']:
         lang_pair = '-'.join(result['languages'])
         results[lang_pair] = {
-            'ndcg@20': result['individual']['original']['ndcg_at_20'],
-            'p-MRR': result['main_score']
+            METRIC_NAME: result['individual']['original'][METRIC_NAME],
+            'p-MRR': result['main_score'],
+            'delta_ndcg': result['individual']['changed'][METRIC_NAME] - result['individual']['original'][METRIC_NAME],
         }
     
     return results
@@ -45,13 +51,17 @@ def main():
         if os.path.isdir(model_path):
             results = process_directory(model_path)
             if results:
+                if "normal" not in results:
+                    misssing_models.append(model_dir)
+                elif "cross_lingual" not in results and "mFollowIR" not in model_dir:
+                    missing_models.append(model_dir)
                 all_results[model_dir] = results
             else:
                 missing_models.append(model_dir)
     
     # Write results to CSV
     with open(output_file, 'w', newline='') as csvfile:
-        fieldnames = ['Model', 'Type', 'Language Pair', 'ndcg@20', 'p-MRR']
+        fieldnames = ['Model', 'Type', 'Language Pair', METRIC_NAME, 'p-MRR', 'delta_ndcg']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         
@@ -62,8 +72,9 @@ def main():
                         'Model': model,
                         'Type': result_type,
                         'Language Pair': lang_pair,
-                        'ndcg@20': metrics['ndcg@20'],
-                        'p-MRR': metrics['p-MRR']
+                        METRIC_NAME: metrics[METRIC_NAME],
+                        'p-MRR': metrics['p-MRR'],
+                        'delta_ndcg': metrics['delta_ndcg'],
                     })
     
     print(f"Results saved to {output_file}")

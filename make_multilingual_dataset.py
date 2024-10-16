@@ -2,6 +2,22 @@ import json
 import argparse
 from datasets import load_dataset
 
+instruction_map = {
+    "english": "You are an expert Google searcher, whose job is to determine if the following document is relevant to the query (0/1). Answer using only one digit, one of those two choices.\n",
+    "farsi": "شما یک جستجوگر متخصص Google هستید که وظیفه‌تان تعیین مرتبط بودن یا نبودن سند زیر با پرسش است (0/1). تنها با یک رقم، یکی از این دو گزینه پاسخ دهید.\n",
+    "chinese": "你是一位专业的谷歌搜索专家，你的任务是确定以下文档是否与查询相关（0/1）。请仅用一个数字回答，从这两个选项中选择一个。\n",
+    "russian": "Вы эксперт по поиску в Google, ваша задача - определить, соответствует ли следующий документ запросу (0/1). Ответьте, используя только одну цифру, один из этих двух вариантов.\n"
+}
+
+query_template_map = {
+    "english": "Query: {query} {instruction}\nDocument: {document}\nRelevant (only output one digit, either 0 or 1):",
+    "farsi": "پرسش: {query} {instruction}\nسند: {document}\nمرتبط (فقط یک رقم خروجی دهید، یا 0 یا 1):",
+    "chinese": "查询：{query} {instruction}\n文档：{document}\n相关（仅输出一个数字，0或1）：",
+    "russian": "Запрос: {query} {instruction}\nДокумент: {document}\nРелевантно (выведите только одну цифру, либо 0, либо 1):"
+}
+
+
+
 def load_multilingual_data(filename):
     multilingual_data = {}
     with open(filename, 'r', encoding='utf-8') as f:
@@ -33,12 +49,14 @@ def transform_dataset(dataset_name, multilingual_dataset):
         query = multi_item["query"]
         document = multi_item["document"]
         lang = multi_item["lang"]
+        instruction = instruction_map[lang]
+        query_template = query_template_map[lang]
         
         transformed_item = {
             "id": f"{id}-{lang}",
-            "instruction": f"You are an expert Google searcher, whose job is to determine if the following document is relevant to the query (true/false). Answer using only one word, one of those two choices.\n",
-            "input": f"Query: {query.strip()} {instruction.strip()}\nDocument: {document.strip()}\nRelevant (only output one word, either \"true\" or \"false\"):",
-            "output": str(item['label']).lower()
+            "instruction": instruction,
+            "input": query_template.format(query=query.strip(), document=document.strip(), instruction=instruction.strip()),
+            "output": "1" if item["label"].lower() in ["true", "relevant"] else "0"
         }
         transformed_data.append(transformed_item)
     
