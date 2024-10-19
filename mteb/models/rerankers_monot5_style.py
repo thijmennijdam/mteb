@@ -20,6 +20,11 @@ from functools import partial
 from typing import Any, Callable
 from mteb.encoder_interface import Encoder
 from mteb.model_meta import ModelMeta
+from torch.utils.data import DataLoader
+from datasets import Dataset
+from typing import List, Tuple
+from transformers import DataCollatorWithPadding
+
 
 
 logger = logging.getLogger(__name__)
@@ -457,6 +462,118 @@ class JinaReranker(RerankerWrapper):
         return scores
 
 
+class mFollowIR(RerankerWrapper):
+    name: str = "mFollowIR-Based"
+
+    def __init__(self, model_name_or_path: str, **kwargs):
+        super().__init__(model_name_or_path, **kwargs)
+        self.model_name_or_path = model_name_or_path
+        self.language = self._get_language_from_model_name()
+        self.instruction_map = {
+            "english": "You are an expert Google searcher, whose job is to determine if the following document is relevant to the query (0/1). Answer using only one digit, one of those two choices.\n",
+            "farsi": "شما یک جستجوگر متخصص Google هستید که وظیفه‌تان تعیین مرتبط بودن یا نبودن سند زیر با پرسش است (0/1). تنها با یک رقم، یکی از این دو گزینه پاسخ دهید.\n",
+            "chinese": "你是一位专业的谷歌搜索专家，你的任务是确定以下文档是否与查询相关（0/1）。请仅用一个数字回答，从这两个选项中选择一个。\n",
+            "russian": "Вы эксперт по поиску в Google, ваша задача - определить, соответствует ли следующий документ запросу (0/1). Ответьте, используя только одну цифру, один из этих двух вариантов.\n"
+        }
+        self.query_template_map = {
+            "english": "Query: {query} {instruction}\nDocument: {document}\nRelevant (only output one digit, either 0 or 1):",
+            "farsi": "پرسش: {query} {instruction}\nسند: {document}\nمرتبط (فقط یک رقم خروجی دهید، یا 0 یا 1):",
+            "chinese": "查询：{query} {instruction}\n文档：{document}\n相关（仅输出一个数字，0或1）：",
+            "russian": "Запрос: {query} {instruction}\nДокумент: {document}\nРелевантно (выведите только одну цифру, либо 0, либо 1):"
+        }
+        
+        self.template = f"<s>[INST] {self.instruction_map[self.language]}{self.query_template_map[self.language]} [/INST]"
+        print(f"Using template of {self.template}")
+        
+        model_args = {}
+        if self.fp_options:
+            model_args["torch_dtype"] = self.fp_options
+        self.model = AutoModelForCausalLM.from_pretrained(model_name_or_path, **model_args)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, padding_side="left")
+        self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.tokenizer.padding_side = "left"
+        
+        self.gpu_count = torch.cuda.device_count()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
+        
+        if self.gpu_count > 1:
+            print(f'Using {self.gpu_count} GPUs')
+            self.model = torch.nn.DataParallel(self.model)
+        
+        self.model.eval()
+        
+        self.token_0_id = self.tokenizer.get_vocab()["0"]
+        self.token_1_id = self.tokenizer.get_vocab()["1"]
+        self.max_length = min(2048, self.tokenizer.model_max_length)
+
+    def _get_language_from_model_name(self):
+        lang_code = self.model_name_or_path.split("-")[-1]
+        if lang_code == "v2":
+            # get the one before
+            lang_code = self.model_name_or_path.split("-")[-2]
+        lang_map = {"eng": "english", "fas": "farsi", "zho": "chinese", "rus": "russian"}
+        return lang_map.get(lang_code, "english")  # Default to English if not found
+
+    def _transform_func(self, examples):
+        queries = examples['queries']
+        documents = examples['documents']
+        instructions = examples.get('instructions', [None] * len(queries))
+        
+        prompts = [
+            self.template.format(query=query, document=doc, instruction=instr if instr else "")
+            for query, doc, instr in zip(queries, documents, instructions)
+        ]
+        
+        tokenized = self.tokenizer(
+            prompts,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
+            max_length=self.max_length,
+        )
+        
+        return tokenized
+
+    @torch.inference_mode()
+    def predict(self, input_to_rerank: List[Tuple[str, str, str]], batch_size: int = 32) -> List[float]:
+        queries, documents, instructions = zip(*input_to_rerank)
+        
+        dataset = Dataset.from_dict({
+            'queries': queries,
+            'documents': documents,
+            'instructions': instructions
+        })
+        dataset.set_transform(self._transform_func)
+        
+        data_collator = DataCollatorWithPadding(self.tokenizer, pad_to_multiple_of=8)
+        data_loader = DataLoader(
+            dataset,
+            batch_size=batch_size * self.gpu_count * 2,
+            shuffle=False,
+            drop_last=False,
+            num_workers=3,
+            collate_fn=data_collator,
+            pin_memory=True
+        )
+        
+        all_scores = []
+        print_first = True
+        
+        for batch in tqdm(data_loader, desc='Reranking', mininterval=10):
+            batch = {k: v.to(self.device) for k, v in batch.items()}
+            
+            with torch.cuda.amp.autocast():
+                outputs = self.model(**batch)
+                logits = outputs.logits[:, -1, :]
+                scores = torch.softmax(logits[:, [self.token_0_id, self.token_1_id]], dim=-1)[:, 1]
+            
+            all_scores.extend(scores.cpu().tolist())
+        
+        return all_scores
+
+
+
 def _loader(wrapper: type[RerankerWrapper], **kwargs) -> Callable[..., Encoder]:
     _kwargs = kwargs
 
@@ -754,6 +871,65 @@ mfollowir_7b_zho_2ep = ModelMeta(
         fp_options="bfloat16",
     ),
     name="jhu-clsp/mFollowIR-7B-zho-2ep",
+    languages=["eng_Latn"],
+    open_source=True,
+    revision="latest",
+    release_date="2024-02-15",
+)
+
+# now add mFollowIR-v2
+mfollowir_7b_zho_v2 = ModelMeta(
+    loader=partial(
+        _loader,
+        wrapper=mFollowIR,
+        model_name_or_path="jhu-clsp/mFollowIR-7B-zho-v2",
+        fp_options="bfloat16",
+    ),
+    name="jhu-clsp/mFollowIR-7B-zho-v2",
+    languages=["eng_Latn"],
+    open_source=True,
+    revision="latest",
+    release_date="2024-02-15",
+)
+
+mfollowir_7b_rus_v2 = ModelMeta(
+    loader=partial(
+        _loader,
+        wrapper=mFollowIR,
+        model_name_or_path="jhu-clsp/mFollowIR-7B-rus-v2",
+        fp_options="bfloat16",
+    ),
+    name="jhu-clsp/mFollowIR-7B-rus-v2",
+    languages=["eng_Latn"],
+    open_source=True,
+    revision="latest",
+    release_date="2024-02-15",
+)
+
+
+mfollowir_7b_fas_v2 = ModelMeta(
+    loader=partial(
+        _loader,
+        wrapper=mFollowIR,
+        model_name_or_path="jhu-clsp/mFollowIR-7B-fas-v2",
+        fp_options="bfloat16",
+    ),
+    name="jhu-clsp/mFollowIR-7B-fas-v2",
+    languages=["eng_Latn"],
+    open_source=True,
+    revision="latest",
+    release_date="2024-02-15",
+)
+
+
+mfollowir_7b_all_v2 = ModelMeta(
+    loader=partial(
+        _loader,
+        wrapper=mFollowIR,
+        model_name_or_path="jhu-clsp/mFollowIR-7B-all-v2",
+        fp_options="bfloat16",
+    ),
+    name="jhu-clsp/mFollowIR-7B-all-v2",
     languages=["eng_Latn"],
     open_source=True,
     revision="latest",
