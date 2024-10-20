@@ -116,6 +116,7 @@ ignore = ["E501",   # line too long
         "D107",     # Missing docstring in __init__
         "D205",     # 1 blank line required between summary line and description
         "D415",     # First line should end with a period
+        "ISC002",   # Implicitly concatenated string literals over multiple lines
 ]
 
 [tool.ruff.lint.flake8-implicit-str-concat]

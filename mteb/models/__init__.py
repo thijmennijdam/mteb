@@ -14,6 +14,7 @@ from mteb.models import (
     blip_models,
     bm25,
     clip_models,
+    clippo_models,
     cohere_models,
     datacomp_clip,
     dino_models,
@@ -137,6 +138,8 @@ model_modules = [
     blip_models,
     blip2_models,
     bm25,
+    clip_models,
+    clippo_models,
     cohere_models,
     datacomp_clip,
     dino_models,
@@ -152,15 +155,12 @@ model_modules = [
     mxbai_models,
     nomic_models,
     nomic_models_vision,
-    cohere_models,
-    clip_models,
     openai_models,
     ru_sentence_models,
     salesforce_models,
     sentence_transformers_models,
     vista_models,
     voyage_models,
-    google_models,
 ]
 models = {}
 
