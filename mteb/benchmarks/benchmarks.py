@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Annotated
 
 from pydantic import AnyUrl, BeforeValidator, TypeAdapter
-from typing_extensions import Annotated
 
 from mteb.abstasks.AbsTask import AbsTask
 from mteb.overview import get_tasks
@@ -685,5 +685,39 @@ MTEB_multilingual = Benchmark(
     ),
     description="The Multilingual benchmarks from MMTEB. Currently under development.",
     reference=None,
+    citation=None,
+)
+
+MTEB_JPN = Benchmark(
+    name="MTEB(jpn)",
+    tasks=get_tasks(
+        languages=["jpn"],
+        tasks=[
+            # clustering
+            "LivedoorNewsClustering.v2",
+            "MewsC16JaClustering",
+            # classification
+            "AmazonReviewsClassification",
+            "AmazonCounterfactualClassification",
+            "MassiveIntentClassification",
+            "MassiveScenarioClassification",
+            # STS
+            "JSTS",
+            "JSICK",
+            # pair classification
+            "PawsXPairClassification",
+            # retrieval
+            "JaqketRetrieval",
+            "MrTidyRetrieval",
+            "JaGovFaqsRetrieval",
+            "NLPJournalTitleAbsRetrieval",
+            "NLPJournalAbsIntroRetrieval",
+            "NLPJournalTitleIntroRetrieval",
+            # reranking
+            "ESCIReranking",
+        ],
+    ),
+    description="Main Japanese benchmarks from MTEB",
+    reference="https://github.com/sbintuitions/JMTEB",
     citation=None,
 )
