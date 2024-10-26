@@ -7,6 +7,10 @@ from typing import Annotated
 from pydantic import AnyUrl, BeforeValidator, TypeAdapter
 
 from mteb.abstasks.AbsTask import AbsTask
+from mteb.load_results.benchmark_results import (
+    BenchmarkResults,
+)
+from mteb.load_results.load_results import load_results
 from mteb.overview import get_tasks
 
 http_url_adapter = TypeAdapter(AnyUrl)
@@ -51,6 +55,13 @@ class Benchmark:
 
     def __getitem__(self, index):
         return self.tasks[index]
+
+    def load_results(
+        self, base_results: None | BenchmarkResults = None
+    ) -> BenchmarkResults:
+        if base_results is None:
+            base_results = load_results()
+        return base_results.select_tasks(self.tasks)
 
 
 MTEB_MAIN_EN = Benchmark(
@@ -118,7 +129,7 @@ MTEB_MAIN_EN = Benchmark(
             "StackOverflowDupQuestions",
             "SummEval",
             "TRECCOVID",
-            "Touche2020",
+            "Touche2020Retrieval.v3",
             "ToxicConversationsClassification",
             "TweetSentimentExtractionClassification",
             "TwentyNewsgroupsClustering",
@@ -467,7 +478,7 @@ MTEB_KOR = Benchmark(
 )
 
 
-MTEB_pol = Benchmark(
+MTEB_POL = Benchmark(
     name="MTEB(pol)",
     tasks=get_tasks(
         languages=["pol"],
@@ -681,6 +692,7 @@ MTEB_multilingual = Benchmark(
             "STS22.v2",
             "STSES",
             "STSB",
+            "MIRACLRetrievalHardNegatives",
         ],
     ),
     description="The Multilingual benchmarks from MMTEB. Currently under development.",
@@ -719,5 +731,133 @@ MTEB_JPN = Benchmark(
     ),
     description="Main Japanese benchmarks from MTEB",
     reference="https://github.com/sbintuitions/JMTEB",
+    citation=None,
+)
+
+
+MTEB_INDIC = Benchmark(
+    name="MTEB(indic)",
+    tasks=get_tasks(
+        tasks=[
+            # Bitext
+            "IN22ConvBitextMining",
+            "IN22GenBitextMining",
+            "IndicGenBenchFloresBitextMining",
+            "LinceMTBitextMining",
+            # clustering
+            "SIB200ClusteringS2S",
+            # classification
+            "BengaliSentimentAnalysis",
+            "GujaratiNewsClassification",
+            "HindiDiscourseClassification",
+            "SentimentAnalysisHindi",
+            "MalayalamNewsClassification",
+            "IndicLangClassification",
+            "MTOPIntentClassification",
+            "MultiHateClassification",
+            "TweetSentimentClassification",
+            "NepaliNewsClassification",
+            "PunjabiNewsClassification",
+            "SanskritShlokasClassification",
+            "UrduRomanSentimentClassification",
+            # STS
+            "IndicCrosslingualSTS",
+            # pair classification
+            "XNLI",
+            # retrieval
+            "BelebeleRetrieval",
+            "XQuADRetrieval",
+            # reranking
+            "WikipediaRerankingMultilingual",
+        ],
+    ),
+    description="Main Indic benchmark from MMTEB",
+    reference=None,
+    citation=None,
+)
+
+
+MTEB_EU = Benchmark(
+    name="MTEB(Europe)",
+    tasks=get_tasks(
+        tasks=[
+            "BornholmBitextMining",
+            "BibleNLPBitextMining",
+            "BUCC.v2",
+            "DiaBlaBitextMining",
+            "FloresBitextMining",
+            "NorwegianCourtsBitextMining",
+            "NTREXBitextMining",
+            "BulgarianStoreReviewSentimentClassfication",
+            "CzechProductReviewSentimentClassification",
+            "GreekLegalCodeClassification",
+            "DBpediaClassification",
+            "FinancialPhrasebankClassification",
+            "PoemSentimentClassification",
+            "ToxicChatClassification",
+            "ToxicConversationsClassification",
+            "EstonianValenceClassification",
+            "ItaCaseholdClassification",
+            "AmazonCounterfactualClassification",
+            "MassiveScenarioClassification",
+            "MultiHateClassification",
+            "NordicLangClassification",
+            "ScalaClassification",
+            "SwissJudgementClassification",
+            "TweetSentimentClassification",
+            "CBD",
+            "PolEmo2.0-OUT",
+            "CSFDSKMovieReviewSentimentClassification",
+            "DalajClassification",
+            "WikiCitiesClustering",
+            "RomaniBibleClustering",
+            "BigPatentClustering.v2",
+            "BiorxivClusteringP2P.v2",
+            "AlloProfClusteringS2S.v2",
+            "HALClusteringS2S.v2",
+            "SIB200ClusteringS2S",
+            "WikiClusteringP2P.v2",
+            "StackOverflowQA",
+            "TwitterHjerneRetrieval",
+            "LegalQuAD",
+            "ArguAna",
+            "HagridRetrieval",
+            "LegalBenchCorporateLobbying",
+            "LEMBPasskeyRetrieval",
+            "SCIDOCS",
+            "SpartQA",
+            "TempReasonL1",
+            "WinoGrande",
+            "AlloprofRetrieval",
+            "BelebeleRetrieval",
+            "StatcanDialogueDatasetRetrieval",
+            "WikipediaRetrievalMultilingual",
+            "Core17InstructionRetrieval",
+            "News21InstructionRetrieval",
+            "Robust04InstructionRetrieval",
+            "MalteseNewsClassification",
+            "MultiEURLEXMultilabelClassification",
+            "CTKFactsNLI",
+            "SprintDuplicateQuestions",
+            "OpusparcusPC",
+            "RTE3",
+            "XNLI",
+            "PSC",
+            "WebLINXCandidatesReranking",
+            "AlloprofReranking",
+            "WikipediaRerankingMultilingual",
+            "SICK-R",
+            "STS12",
+            "STS14",
+            "STS15",
+            "STSBenchmark",
+            "FinParaSTS",
+            "STS17",
+            "SICK-R-PL",
+            "STSES",
+        ]
+    ),
+    description="Main European benchmark from MMTEB",
+    reference=None,
     citation=None,
 )
