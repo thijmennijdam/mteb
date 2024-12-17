@@ -9,7 +9,7 @@ from gradio_rangeslider import RangeSlider
 
 import mteb
 from mteb.caching import json_cache
-from mteb.leaderboard.figures import performance_size_plot
+from mteb.leaderboard.figures import performance_size_plot, radar_chart
 from mteb.leaderboard.table import scores_to_tables
 
 
@@ -81,7 +81,7 @@ def update_task_info(task_names: str) -> gr.DataFrame:
     return gr.DataFrame(df, datatype=["markdown"] + ["str"] * (len(df.columns) - 1))
 
 
-all_results = load_results().filter_models()
+all_results = load_results().join_revisions().filter_models()
 
 # Model sizes in million parameters
 min_model_size, max_model_size = 0, 10_000
@@ -218,10 +218,16 @@ with gr.Blocks(fill_width=True, theme=gr.themes.Base(), head=head) as demo:
             )
             citation = gr.Markdown(update_citation, inputs=[benchmark_select])
         with gr.Column():
-            plot = gr.Plot(performance_size_plot, inputs=[summary_table])
-            gr.Markdown(
-                "*We only display models that have been run on all tasks in the benchmark*"
-            )
+            with gr.Tab("Performance-Size Plot"):
+                plot = gr.Plot(performance_size_plot, inputs=[summary_table])
+                gr.Markdown(
+                    "*We only display models that have been run on all tasks in the benchmark*"
+                )
+            with gr.Tab("Top 5 Radar Chart"):
+                radar_plot = gr.Plot(radar_chart, inputs=[summary_table])
+                gr.Markdown(
+                    "*We only display models that have been run on all task types in the benchmark*"
+                )
     with gr.Tab("Summary"):
         summary_table.render()
     with gr.Tab("Performance per task"):
@@ -316,12 +322,13 @@ with gr.Blocks(fill_width=True, theme=gr.themes.Base(), head=head) as demo:
             domains=domains,
         )
         lower, upper = model_size
-        # Multiplying by millions
-        lower = lower * 1e6
-        upper = upper * 1e6
         # Setting to None, when the user doesn't specify anything
         if (lower == min_model_size) and (upper == max_model_size):
             lower, upper = None, None
+        else:
+            # Multiplying by millions
+            lower = lower * 1e6
+            upper = upper * 1e6
         benchmark_results = benchmark_results.filter_models(
             open_weights=availability,
             use_instructions=instructions,
