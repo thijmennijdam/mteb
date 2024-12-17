@@ -44,6 +44,8 @@ class OpenAIWrapper(Wrapper):
         truncated_sentence = self._encoding.encode(text)[: self._max_tokens]
         return self._encoding.decode(truncated_sentence)
 
+        self.model = self
+        
     def encode(self, sentences: list[str], **kwargs: Any) -> np.ndarray:
         requires_package(self, "openai", "Openai text embedding")
 

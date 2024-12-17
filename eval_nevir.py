@@ -54,7 +54,8 @@ def main():
         output_folder=f"results/{model_path}",
         batch_size=32,
         save_predictions=True,
-        previous_results=args.previous_results
+        overwrite_results=True
+        # previous_results=args.previous_results
     )
 
 if __name__ == "__main__":
