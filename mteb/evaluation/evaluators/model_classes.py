@@ -470,7 +470,7 @@ class DenseRetrievalExactSearch:
                 scores = self.model.predict(list(zip(queries_in_pair, corpus_in_pair)))  # type: ignore
             else:
                 # may use the instructions in a unique way, so give them also
-                scores = self.model.predict(  # type: ignore
+                scores = self.model._predict(  # type: ignore
                     list(zip(queries_in_pair, corpus_in_pair, instructions_in_pair))
                 )
 
