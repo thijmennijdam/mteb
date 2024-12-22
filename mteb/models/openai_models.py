@@ -22,6 +22,8 @@ class OpenAIWrapper(Wrapper):
         self._client = OpenAI()
         self._model_name = model_name
         self._embed_dim = embed_dim
+        
+        self.model = self
 
     def encode(self, sentences: list[str], **kwargs: Any) -> np.ndarray:
         requires_package(self, "openai", "Openai text embedding")
